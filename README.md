@@ -14,7 +14,7 @@
 ## 🚀 Submission & Download
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1X-fCSfDYbWBV2b73fKe6N5zSPG8n9BXS/view?usp=sharing" target="_blank">
+  <a href="https://drive.google.com/file/d/1spDwMHTcGrLFLJmSqk9leb0rveAfFPzG/view?usp=sharing" target="_blank">
     <img src="https://img.shields.io/badge/📥_Download_Release_APK-Google_Drive-34A853?style=for-the-badge&logo=googledrive&logoColor=white" alt="Download APK from Google Drive" />
   </a>
 </p>
@@ -25,7 +25,7 @@
 | **Topic** | Firebase Push Notification + Local Notification | ✅ Implemented |
 | **GitHub Repository** | [github.com/marufhossain19/FireTask](https://github.com/marufhossain19/FireTask) | 🚀 **Uploaded & Synced** |
 | **Ostad Portal** | Assignment Submission | 🎯 **Submitted** |
-| **Release APK** | [Google Drive Direct Download Link](https://drive.google.com/file/d/1X-fCSfDYbWBV2b73fKe6N5zSPG8n9BXS/view?usp=sharing) | 📦 Ready to Test |
+| **Release APK** | [Google Drive Direct Download Link](https://drive.google.com/file/d/1spDwMHTcGrLFLJmSqk9leb0rveAfFPzG/view?usp=sharing) | 📦 Ready to Test |
 
 ---
 
@@ -133,4 +133,4 @@ lib/
 - **Course**: Ostad Flutter Course
 - **Assignment**: Module 16 (Firebase Push Notification + Local Notification)
 - **Repository**: [https://github.com/marufhossain19/FireTask](https://github.com/marufhossain19/FireTask)
-- **App Download**: [Google Drive Link](https://drive.google.com/file/d/1X-fCSfDYbWBV2b73fKe6N5zSPG8n9BXS/view?usp=sharing)
+- **App Download**: [Google Drive Link](https://drive.google.com/file/d/1spDwMHTcGrLFLJmSqk9leb0rveAfFPzG/view?usp=sharing)
