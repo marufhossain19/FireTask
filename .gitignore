@@ -1,0 +1,28 @@
+# ==============================================================================
+# 🔒 SENSITIVE CREDENTIALS, API KEYS & PRIVATE SECRETS
+# ==============================================================================
+**/google-services.json
+!**/google-services.json.example
+**/firebase_options.dart
+!**/firebase_options.dart.example
+**/secrets.dart
+*.jks
+*.keystore
+key.properties
+*.env
+.env*
+
+# ==============================================================================
+# Flutter / Dart / Build Artifacts
+# ==============================================================================
+**/build/
+**/.dart_tool/
+**/.pub-cache/
+**/.pub/
+**/.flutter-plugins-dependencies
+**/doc/api/
+**/.idea/
+**/*.iml
+**/*.ipr
+**/*.iws
+.DS_Store
