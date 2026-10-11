@@ -29,29 +29,38 @@
 
 ---
 
-## 📸 App Showcase & Output
+## 📸 App Showcase & Output Screens
 
-### 1. Task Operations & Management
-| Task List Dashboard | Add Task Screen | Edit Task Screen | Delete Confirmation |
+### 1. Authentication & Onboarding
+| Splash Screen | Create Account (Sign Up) | Login Screen | Forgot Password |
 | :---: | :---: | :---: | :---: |
-| <img src="lib/Output%20Screens/Task%20List%20Screen.jpg" width="210" /> | <img src="lib/Output%20Screens/add%20task%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/edit%20task%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/delete%20task.jpg" width="210" /> |
+| <img src="lib/Output%20Screens/splash%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/sign%20up%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/login%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/forgot%20passward%20screen.jpg" width="200" /> |
 
-### 2. Interactive Gestures & Real-Time Filters
-| Swipe Right (Complete) | Swipe Left (Delete) | Filter & Sort Options | Live Task Search |
+### 2. Task Management, Dashboard & Error States
+| Task List Dashboard | No Tasks (Empty State) | Add Task Screen | Edit Task Screen |
 | :---: | :---: | :---: | :---: |
-| <img src="lib/Output%20Screens/mark%20as%20complete%20using%20swipe%20right%20gesture.jpg" width="210" /> | <img src="lib/Output%20Screens/delete%20task%20using%20swipe%20left%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/filter%20task.jpg" width="210" /> | <img src="lib/Output%20Screens/search%20task.jpg" width="210" /> |
+| <img src="lib/Output%20Screens/Task%20List%20Screen.jpg" width="200" /> | <img src="lib/Output%20Screens/no%20task%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/add%20task%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/edit%20task%20screen.jpg" width="200" /> |
 
-### 3. Push Notifications & App Lifecycle Handling
-| Foreground Alert Banner | FCM Test Trigger | Account & FCM Token |
-| :---: | :---: | :---: |
-| <img src="lib/Output%20Screens/notification.jpg" width="210" /> | <img src="lib/Output%20Screens/FCM%20test%20notification.jpg" width="210" /> | <img src="lib/Output%20Screens/account%20and%20settings%20card.jpg" width="210" /> |
-
-### 4. Authentication & User Profile
-| Splash Screen | Login Screen | Sign Up Screen | Password / Profile |
+| Delete Confirmation | Error / Offline Screen | Live Task Search | Filter & Sort Options |
 | :---: | :---: | :---: | :---: |
-| <img src="lib/Output%20Screens/splash%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/login%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/sign%20up%20screen.jpg" width="210" /> | <img src="lib/Output%20Screens/change%20password.jpg" width="210" /> |
+| <img src="lib/Output%20Screens/delete%20task.jpg" width="200" /> | <img src="lib/Output%20Screens/error%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/search%20task.jpg" width="200" /> | <img src="lib/Output%20Screens/filter%20task.jpg" width="200" /> |
 
-### 5. Cloud Firestore Live Backend
+### 3. Interactive Gestures
+| Swipe Right (Mark Complete) | Swipe Left (Delete Task) |
+| :---: | :---: |
+| <img src="lib/Output%20Screens/mark%20as%20complete%20using%20swipe%20right%20gesture.jpg" width="310" /> | <img src="lib/Output%20Screens/delete%20task%20using%20swipe%20left%20screen.jpg" width="310" /> |
+
+### 4. Push & Local Notification System
+| Foreground Alert Banner | FCM Test Trigger & Token Sheet |
+| :---: | :---: |
+| <img src="lib/Output%20Screens/notification.jpg" width="310" /> | <img src="lib/Output%20Screens/FCM%20test%20notification.jpg" width="310" /> |
+
+### 5. Profile, Account & Settings
+| Profile Screen | Account & Settings Card | Change Password | Share Feedback |
+| :---: | :---: | :---: | :---: |
+| <img src="lib/Output%20Screens/profile%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/account%20and%20settings%20card.jpg" width="200" /> | <img src="lib/Output%20Screens/change%20password.jpg" width="200" /> | <img src="lib/Output%20Screens/share%20feedback'.jpg" width="200" /> |
+
+### 6. Cloud Firestore Real-Time Database
 <p align="center">
   <img src="lib/Output%20Screens/Database%20output.png" width="850" alt="Cloud Firestore Database Output" />
 </p>
