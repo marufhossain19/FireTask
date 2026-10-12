@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task_model.dart';
 
@@ -19,6 +20,7 @@ class LocalStorageService {
           .map((item) => TaskModel.fromMap(Map<String, dynamic>.from(item)))
           .toList();
     } catch (e) {
+      debugPrint('⚠️ LocalStorageService.loadTasks error: $e');
       return [];
     }
   }
@@ -30,7 +32,9 @@ class LocalStorageService {
       final encodedList = tasks.map((t) => t.toJsonMap()).toList();
       final jsonString = jsonEncode(encodedList);
       await prefs.setString(_keyForUser(uid), jsonString);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('⚠️ LocalStorageService.saveTasks error: $e');
+    }
   }
 
   static Future<void> clearTasks([String? userId]) async {
@@ -38,6 +42,8 @@ class LocalStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_keyForUser(uid));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('⚠️ LocalStorageService.clearTasks error: $e');
+    }
   }
 }

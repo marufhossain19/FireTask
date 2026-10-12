@@ -53,6 +53,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget _buildFilterTab(
+    BuildContext context,
     String label,
     int count,
     TaskFilter filter,
@@ -60,42 +61,75 @@ class _TaskListScreenState extends State<TaskListScreen> {
     VoidCallback onTap,
   ) {
     final isSelected = activeFilter == filter;
+    final isDark = AppColors.isDark(context);
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.darkButton : const Color(0xFFF3F4F6),
+          color: isSelected
+              ? (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+              : (isDark ? AppColors.darkSurface : const Color(0xFFF3F4F6)),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+                : (isDark ? AppColors.darkBorder : Colors.transparent),
+            width: 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+                        .withValues(alpha: isDark ? 0.35 : 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              label,
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
               style: TextStyle(
+                fontFamily: 'Inter',
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
               ),
+              child: Text(label),
             ),
             const SizedBox(width: 6),
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
               decoration: BoxDecoration(
                 color: isSelected
                     ? Colors.white.withValues(alpha: 0.25)
-                    : const Color(0xFFE5E7EB),
+                    : (isDark ? const Color(0xFF222634) : const Color(0xFFE5E7EB)),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
-                '$count',
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                 ),
+                child: Text('$count'),
               ),
             ),
           ],
@@ -108,12 +142,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     final taskProvider = Provider.of<TaskProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
+    final isDark = AppColors.isDark(context);
     final todayFormatted = DateFormat('EEEE, MMM d').format(DateTime.now());
 
     final filteredTasks = taskProvider.filteredTasks;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundOf(context),
       appBar: AppBar(
         titleSpacing: 24,
         toolbarHeight: 70,
@@ -122,12 +157,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
           children: [
             Row(
               children: [
-                const Text(
+                Text(
                   'Tasks',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: AppColors.textPrimaryOf(context),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -137,15 +172,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
+                    color: isDark
+                        ? const Color(0xFF1E212B)
+                        : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${taskProvider.totalCount} TOTAL',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -154,9 +193,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
             const SizedBox(height: 2),
             Text(
               'Today • $todayFormatted',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textMuted,
+                color: AppColors.textMutedOf(context),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -166,7 +205,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
           IconButton(
             icon: Icon(
               _isSearchOpen ? Icons.close_rounded : Icons.search_rounded,
-              color: AppColors.textSecondary,
+              color: AppColors.textSecondaryOf(context),
             ),
             onPressed: () {
               setState(() {
@@ -179,9 +218,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.tune_rounded,
-              color: AppColors.textSecondary,
+              color: AppColors.textSecondaryOf(context),
             ),
             onPressed: _showSortFilterModal,
           ),
@@ -203,10 +242,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
+                    color: isDark
+                        ? const Color(0xFF1E1B4B)
+                        : const Color(0xFFEEF2FF),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
+                      color: (isDark ? AppColors.darkPrimary : AppColors.primary)
+                          .withValues(alpha: 0.35),
                       width: 1.5,
                     ),
                   ),
@@ -215,10 +257,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       authProvider.userEmail.isNotEmpty
                           ? authProvider.userEmail[0].toUpperCase()
                           : 'U',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: isDark
+                            ? const Color(0xFFA5B4FC)
+                            : AppColors.primary,
                       ),
                     ),
                   ),
@@ -231,6 +275,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
       body: SafeArea(
         child: Column(
           children: [
+
             // Expandable Search Bar
             if (_isSearchOpen)
               Padding(
@@ -238,20 +283,24 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 child: TextField(
                   controller: _searchController,
                   autofocus: true,
+                  style: TextStyle(
+                    color: AppColors.textPrimaryOf(context),
+                    fontSize: 14,
+                  ),
                   onChanged: (val) => taskProvider.setSearchQuery(val),
                   decoration: InputDecoration(
                     hintText: 'Search tasks by title, note, or course...',
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search,
                       size: 20,
-                      color: AppColors.textMuted,
+                      color: AppColors.textMutedOf(context),
                     ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.clear,
                               size: 18,
-                              color: AppColors.textMuted,
+                              color: AppColors.textMutedOf(context),
                             ),
                             onPressed: () {
                               _searchController.clear();
@@ -275,6 +324,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 child: Row(
                   children: [
                     _buildFilterTab(
+                      context,
                       'All',
                       taskProvider.totalCount,
                       TaskFilter.all,
@@ -283,6 +333,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     ),
                     const SizedBox(width: 8),
                     _buildFilterTab(
+                      context,
                       'Pending',
                       taskProvider.pendingCount,
                       TaskFilter.pending,
@@ -291,6 +342,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     ),
                     const SizedBox(width: 8),
                     _buildFilterTab(
+                      context,
                       'Completed',
                       taskProvider.completedCount,
                       TaskFilter.completed,
@@ -305,35 +357,47 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
             // Tasks List
             Expanded(
-              child: filteredTasks.isEmpty
-                  ? Align(
-                      alignment: const Alignment(0, -0.35),
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Lottie.asset(
-                              'assets/jurupoles - Login.json',
-                              width: 200,
-                              height: 200,
-                              fit: BoxFit.contain,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'No tasks found',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade500,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 240),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: filteredTasks.isEmpty
+                    ? Align(
+                        key: ValueKey('empty_${taskProvider.currentFilter.name}_${taskProvider.searchQuery}'),
+                        alignment: const Alignment(0, -0.35),
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Lottie.asset(
+                                'assets/jurupoles - Login.json',
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.contain,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                'No tasks found',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textMutedOf(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
+                      )
+                    : ListView.builder(
+                        key: ValueKey('list_${taskProvider.currentFilter.name}'),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
                       itemCount: filteredTasks.length,
                       itemBuilder: (context, index) {
                         final task = filteredTasks[index];
@@ -482,13 +546,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         );
                       },
                     ),
+              ),
             ),
           ],
         ),
       ),
       // Floating Action Button matching Figma "+ New Task"
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.darkButton,
+        backgroundColor: isDark ? AppColors.darkPrimary : AppColors.darkButton,
         foregroundColor: Colors.white,
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

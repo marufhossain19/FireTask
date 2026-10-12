@@ -11,6 +11,9 @@
 key.properties
 *.env
 .env*
+*.log
+firebase-debug.log*
+.firebaserc
 
 # ==============================================================================
 # Flutter / Dart / Build Artifacts

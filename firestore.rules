@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for secure authentication & ownership verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Task collection rules: Enforce strict user isolation
+    match /tasks/{taskId} {
+      // 1. READ: Allow users to view and query ONLY tasks where userId matches their own auth UID
+      allow read: if isOwner(resource.data.userId);
+
+      // 2. CREATE: Allow users to create tasks ONLY if they assign the task to their own auth UID
+      allow create: if isOwner(request.resource.data.userId);
+
+      // 3. UPDATE: Allow users to update ONLY their own tasks, and prevent re-assigning ownership
+      allow update: if isOwner(resource.data.userId) 
+                    && (!('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId);
+
+      // 4. DELETE: Allow users to delete ONLY their own tasks
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Default deny all other collections/documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

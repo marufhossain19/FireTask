@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../models/task_model.dart';
 import '../providers/task_provider.dart';
 import '../theme/app_theme.dart';
@@ -23,8 +22,9 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   late String _courseBucket;
   late TaskPriority _priority;
   late bool _isCompleted;
+  bool _isSaving = false;
 
-  final int _maxTitleLength = 60;
+  final int _maxTitleLength = 100;
   final List<String> _courseBuckets = ['Personal', 'Educational', 'Work'];
 
   @override
@@ -52,6 +52,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   }
 
   Future<void> _pickDate() async {
+    final isDark = AppColors.isDark(context);
     final picked = await showDatePicker(
       context: context,
       initialDate: _dueDate,
@@ -60,11 +61,19 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: AppColors.darkPrimary,
+                    onPrimary: Colors.white,
+                    surface: AppColors.darkSurface,
+                    onSurface: AppColors.darkTextPrimary,
+                  )
+                : const ColorScheme.light(
+                    primary: AppColors.primary,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: AppColors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -78,17 +87,26 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   }
 
   Future<void> _pickTime() async {
+    final isDark = AppColors.isDark(context);
     final picked = await showTimePicker(
       context: context,
       initialTime: _dueTime,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: AppColors.darkPrimary,
+                    onPrimary: Colors.white,
+                    surface: AppColors.darkSurface,
+                    onSurface: AppColors.darkTextPrimary,
+                  )
+                : const ColorScheme.light(
+                    primary: AppColors.primary,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: AppColors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -102,6 +120,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   }
 
   void _saveChanges() async {
+    if (_isSaving) return;
+
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,6 +129,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       );
       return;
     }
+
+    setState(() => _isSaving = true);
 
     final combinedDueDate = DateTime(
       _dueDate.year,
@@ -151,44 +173,101 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     }
   }
 
-  Widget _buildPriorityButton(TaskPriority priority, String label) {
-    final isSelected = _priority == priority;
-    final priorityColor = _getPriorityColor(priority);
+  Widget _buildSlidingPrioritySelector(bool isDark) {
+    final priorityColor = _getPriorityColor(_priority);
+    final priorities = const [
+      (TaskPriority.low, 'Low'),
+      (TaskPriority.medium, 'Medium'),
+      (TaskPriority.high, 'High'),
+    ];
+    final selectedIndex = _priority == TaskPriority.low
+        ? 0
+        : (_priority == TaskPriority.medium ? 1 : 2);
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _priority = priority;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? priorityColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: priorityColor.withValues(alpha: 0.35),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-            ),
-          ),
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.borderSubtle,
+          width: 1,
         ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          final tabWidth = totalWidth / 3;
+          final indicatorLeft = selectedIndex * tabWidth;
+
+          return Stack(
+            children: [
+              // Gliding Animated Indicator Pill
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+                left: indicatorLeft,
+                top: 0,
+                bottom: 0,
+                width: tabWidth,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: priorityColor,
+                    borderRadius: BorderRadius.circular(9),
+                    boxShadow: [
+                      BoxShadow(
+                        color: priorityColor.withValues(alpha: isDark ? 0.45 : 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Interactive Tab Labels
+              Positioned.fill(
+                child: Row(
+                  children: priorities.map((entry) {
+                    final priority = entry.$1;
+                    final label = entry.$2;
+                    final isSelected = _priority == priority;
+
+                    return Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          setState(() {
+                            _priority = priority;
+                          });
+                        },
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 280),
+                            curve: Curves.easeOutCubic,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textSecondary),
+                            ),
+                            child: Text(label),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -196,27 +275,36 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MM/dd/yyyy');
+    final isDark = AppColors.isDark(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundOf(context),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: AppColors.textPrimaryOf(context),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Edit Task',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimaryOf(context),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: _resetToInitial,
-            child: const Text(
+            child: Text(
               'Reset',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
+                color: AppColors.textMutedOf(context),
               ),
             ),
           ),
@@ -235,16 +323,16 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   Text(
                     'Task Title',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.textPrimaryOf(context),
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
                   ),
                   Text(
                     '${_titleController.text.length}/$_maxTitleLength',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMuted,
+                      color: AppColors.textMutedOf(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -255,18 +343,19 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 controller: _titleController,
                 maxLength: _maxTitleLength,
                 onChanged: (_) => setState(() {}),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimaryOf(context),
                 ),
                 decoration: InputDecoration(
                   counterText: '',
                   suffixIcon: _titleController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close_rounded,
                             size: 18,
-                            color: AppColors.textMuted,
+                            color: AppColors.textMutedOf(context),
                           ),
                           onPressed: () {
                             _titleController.clear();
@@ -278,11 +367,11 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Description & Milestones
+              // Description
               Text(
                 'Description',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textPrimary,
+                  color: AppColors.textPrimaryOf(context),
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
@@ -291,9 +380,10 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               TextField(
                 controller: _descController,
                 maxLines: 4,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
+                  color: AppColors.textPrimaryOf(context),
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Implement Firestore CRUD operations...',
@@ -301,7 +391,6 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Two columns: Due Date & Course Bucket
               // Due Date & Due Time Row
               Row(
                 children: [
@@ -311,12 +400,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Due Date',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textSecondaryOf(context),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -329,25 +418,27 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurface : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.border,
+                                color: isDark ? AppColors.darkBorder : AppColors.border,
                                 width: 1.2,
                               ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.calendar_today_outlined,
                                   size: 16,
-                                  color: AppColors.textMuted,
+                                  color: AppColors.textMutedOf(context),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   dateFormat.format(_dueDate),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimaryOf(context),
                                   ),
                                 ),
                               ],
@@ -364,12 +455,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Due Time',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textSecondaryOf(context),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -382,25 +473,27 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurface : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.border,
+                                color: isDark ? AppColors.darkBorder : AppColors.border,
                                 width: 1.2,
                               ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.access_time_rounded,
                                   size: 16,
-                                  color: AppColors.textMuted,
+                                  color: AppColors.textMutedOf(context),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _dueTime.format(context),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimaryOf(context),
                                   ),
                                 ),
                               ],
@@ -418,12 +511,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Category',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: AppColors.textSecondaryOf(context),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -433,18 +526,24 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border, width: 1.2),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                        width: 1.2,
+                      ),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
+                        dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
                         value: _courseBuckets.contains(_courseBucket)
                             ? _courseBucket
                             : _courseBuckets.first,
                         isExpanded: true,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
+                          color: AppColors.textMutedOf(context),
                         ),
                         items: _courseBuckets.map((bucket) {
                           return DropdownMenuItem<String>(
@@ -454,17 +553,18 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.textSecondary,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   bucket,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimaryOf(context),
                                   ),
                                 ),
                               ],
@@ -486,29 +586,16 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               const SizedBox(height: 24),
 
               // Priority Label & Segmented Selector
-              const Text(
+              Text(
                 'Priority',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: AppColors.textSecondaryOf(context),
                 ),
               ),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    _buildPriorityButton(TaskPriority.low, 'Low'),
-                    _buildPriorityButton(TaskPriority.medium, 'Medium'),
-                    _buildPriorityButton(TaskPriority.high, 'High'),
-                  ],
-                ),
-              ),
+              _buildSlidingPrioritySelector(isDark),
               const SizedBox(height: 24),
 
               // Completed Switch Tile
@@ -518,8 +605,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 1.2),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1.2,
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -527,12 +618,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Completed',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: AppColors.textPrimaryOf(context),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -540,14 +631,14 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                           'Mark task as done',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textMuted,
+                            color: AppColors.textMutedOf(context),
                           ),
                         ),
                       ],
                     ),
                     Switch(
                       value: _isCompleted,
-                      activeTrackColor: AppColors.primary,
+                      activeTrackColor: isDark ? AppColors.darkPrimary : AppColors.primary,
                       activeThumbColor: Colors.white,
                       onChanged: (val) {
                         setState(() {
@@ -560,18 +651,18 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               ),
               const SizedBox(height: 36),
 
-              // Save Changes Button (Dark Button matching Figma)
+              // Save Changes Button
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.darkButton,
+                    backgroundColor: isDark ? AppColors.darkPrimary : AppColors.darkButton,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: _saveChanges,
+                  onPressed: _isSaving ? null : _saveChanges,
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -593,12 +684,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               // Cancel Button
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   'Cancel',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                   ),
                 ),
               ),

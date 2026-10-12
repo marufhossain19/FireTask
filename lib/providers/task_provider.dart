@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../services/firebase_service.dart';
@@ -13,13 +14,18 @@ class TaskProvider extends ChangeNotifier {
 
   List<TaskModel> _tasks = [];
   String? _currentUserId;
-  StreamSubscription<List<TaskModel>>? _tasksSubscription;
+  StreamSubscription? _tasksSubscription;
   TaskFilter _currentFilter = TaskFilter.all;
   String _searchQuery = '';
   String? _selectedCourseBucket;
   TaskSortOption _sortOption = TaskSortOption.newest;
   TaskPriority? _selectedPriorityFilter;
   bool _isLoading = false;
+
+  /// Whether the latest Firestore snapshot was served from local cache
+  /// (i.e. device is offline or server hasn't confirmed yet).
+  /// Defaults to `true` until a server-confirmed snapshot arrives.
+  bool _isOffline = true;
 
   TaskProvider([String? initialUserId]) {
     if (initialUserId != null && initialUserId.isNotEmpty) {
@@ -46,6 +52,8 @@ class TaskProvider extends ChangeNotifier {
     }
   }
 
+  // ── Getters ──────────────────────────────────────────────────────────
+
   List<TaskModel> get allTasks => _tasks;
   TaskFilter get currentFilter => _currentFilter;
   String get searchQuery => _searchQuery;
@@ -54,6 +62,14 @@ class TaskProvider extends ChangeNotifier {
   TaskPriority? get selectedPriorityFilter => _selectedPriorityFilter;
   bool get isLoading => _isLoading;
   String? get currentUserId => _currentUserId;
+
+  /// Returns `true` when the device appears to be offline.
+  /// For non-Firestore mode (guest), always returns `false` to avoid
+  /// showing a misleading offline banner.
+  bool get isOffline {
+    if (!_firebaseService.isInitialized) return false;
+    return _isOffline;
+  }
 
   int get totalCount => _tasks.length;
   int get pendingCount => _tasks.where((t) => !t.isCompleted).length;
@@ -113,27 +129,58 @@ class TaskProvider extends ChangeNotifier {
     return list;
   }
 
+  // ── Local Storage ────────────────────────────────────────────────────
+
   Future<void> _loadFromLocalStorage(String userId) async {
-    final localTasks = await LocalStorageService.loadTasks(userId);
-    if (_currentUserId == userId && _tasks.isEmpty) {
-      _tasks = localTasks;
+    _isLoading = true;
+    try {
+      final localTasks = await LocalStorageService.loadTasks(userId);
+      if (_currentUserId == userId && _tasks.isEmpty) {
+        _tasks = localTasks;
+      }
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  void _listenToFirestore(String userId) {
-    if (_firebaseService.isInitialized) {
-      _tasksSubscription?.cancel();
-      _tasksSubscription = _firebaseService.getTasksStream(userId).listen((firestoreTasks) {
-        if (_currentUserId == userId) {
-          final seenIds = <String>{};
-          _tasks = firestoreTasks.where((t) => seenIds.add(t.id)).toList();
-          LocalStorageService.saveTasks(_tasks, userId);
-          notifyListeners();
-        }
-      });
+  /// Persist current in-memory task list to SharedPreferences.
+  void _saveToLocalStorage() {
+    if (_currentUserId != null) {
+      LocalStorageService.saveTasks(_tasks, _currentUserId!);
     }
   }
+
+  // ── Firestore Stream ────────────────────────────────────────────────
+
+  void _listenToFirestore(String userId) {
+    if (!_firebaseService.isInitialized) return;
+
+    _tasksSubscription?.cancel();
+    _tasksSubscription = _firebaseService
+        .getTasksStreamWithMeta(userId)
+        .listen(
+      (snapshot) {
+        if (_currentUserId != userId) return;
+
+        _isOffline = snapshot.isFromCache;
+
+        // Firestore (including its local cache) is the source of truth.
+        // Replace the in-memory list entirely to avoid stale/duplicate entries.
+        _tasks = snapshot.tasks;
+        LocalStorageService.saveTasks(_tasks, userId);
+        notifyListeners();
+      },
+      onError: (error) {
+        debugPrint('Firestore stream error: $error');
+        // Keep showing cached data — don't clear _tasks on transient errors.
+        _isOffline = true;
+        notifyListeners();
+      },
+    );
+  }
+
+  // ── Filters & Sorting ────────────────────────────────────────────────
 
   void setFilter(TaskFilter filter) {
     _currentFilter = filter;
@@ -173,108 +220,144 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── CRUD Operations (Optimistic + Fire-and-Forget) ───────────────────
+  //
+  // Every write follows the same pattern:
+  //   1. Update local _tasks immediately → instant UI feedback.
+  //   2. Persist to SharedPreferences → survives app restart.
+  //   3. Fire-and-forget to Firestore → no await, never blocks the UI.
+  //      Firestore's local cache absorbs the write instantly; the SDK
+  //      syncs to the server whenever connectivity is available.
+  //      The stream listener reconciles the authoritative state.
+
+  /// Add a new task.
+  ///
+  /// Pre-generates a Firestore doc ID so the optimistic local insert and
+  /// the Firestore document share the same identity — no duplicates.
   Future<void> addTask(TaskModel task) async {
-    _isLoading = true;
+    // Generate a stable ID that Firestore will use as the doc path
+    final String taskId;
+    if (_firebaseService.isInitialized) {
+      taskId = _firebaseService.generateDocId() ??
+          DateTime.now().millisecondsSinceEpoch.toString();
+    } else {
+      taskId = task.id.isNotEmpty
+          ? task.id
+          : DateTime.now().millisecondsSinceEpoch.toString();
+    }
+
+    final finalTask = task.copyWith(id: taskId, userId: _currentUserId);
+
+    // 1. Optimistic local insert
+    _tasks.insert(0, finalTask);
     notifyListeners();
 
-    try {
-      final taskWithUser = task.copyWith(userId: _currentUserId);
-      if (_firebaseService.isInitialized && _currentUserId != null) {
-        final docId = await _firebaseService.addTask(taskWithUser, _currentUserId);
-        final newTask = docId != null ? taskWithUser.copyWith(id: docId) : taskWithUser;
-        if (!_tasks.any((t) => t.id == newTask.id)) {
-          _tasks.insert(0, newTask);
-        }
-        // Schedule priority-based reminder for new task
-        NotificationService().scheduleTaskReminder(newTask);
-      } else {
-        if (!_tasks.any((t) => t.id == taskWithUser.id)) {
-          _tasks.insert(0, taskWithUser);
-        }
-        // Schedule priority-based reminder for new task
-        NotificationService().scheduleTaskReminder(taskWithUser);
-      }
-      // Ensure unique task IDs across _tasks
-      final seenIds = <String>{};
-      _tasks = _tasks.where((t) => seenIds.add(t.id)).toList();
+    // 2. Persist to local storage
+    _saveToLocalStorage();
 
-      // Persist to local storage immediately
-      if (_currentUserId != null) {
-        await LocalStorageService.saveTasks(_tasks, _currentUserId!);
-      }
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+    // 3. Fire-and-forget to Firestore (uses set() with pre-generated ID)
+    if (_firebaseService.isInitialized && _currentUserId != null) {
+      _firebaseService.setTask(finalTask, _currentUserId).catchError((e) {
+        debugPrint('⚠️ Firestore addTask error: $e');
+        // Data is safe in Firestore's local cache — will retry when online.
+      });
     }
+
+    // 4. Schedule notification (guarded)
+    _scheduleNotificationSafe(finalTask);
   }
 
+  /// Update an existing task with optimistic local update.
   Future<void> updateTask(TaskModel task) async {
-    _isLoading = true;
+    // 1. Optimistic local update
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) {
+      _tasks[index] = task;
+    }
     notifyListeners();
 
-    try {
-      if (_firebaseService.isInitialized) {
-        await _firebaseService.updateTask(task);
-      }
-      final index = _tasks.indexWhere((t) => t.id == task.id);
-      if (index != -1) {
-        _tasks[index] = task;
-      }
-      // Persist changes to local storage immediately
-      if (_currentUserId != null) {
-        await LocalStorageService.saveTasks(_tasks, _currentUserId!);
-      }
+    // 2. Persist to local storage
+    _saveToLocalStorage();
 
-      // Re-schedule reminder with updated time/priority
+    // 3. Fire-and-forget to Firestore
+    if (_firebaseService.isInitialized) {
+      _firebaseService.updateTask(task).catchError((e) {
+        debugPrint('⚠️ Firestore updateTask error: $e');
+      });
+    }
+
+    // 4. Re-schedule notification
+    try {
       await NotificationService().cancelScheduledReminder(task.id);
       if (!task.isCompleted) {
-        NotificationService().scheduleTaskReminder(task);
+        _scheduleNotificationSafe(task);
       }
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    } catch (_) {}
   }
 
+  /// Toggle task completion with optimistic local update.
   Future<void> toggleTaskCompletion(String id) async {
     final index = _tasks.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      final updatedStatus = !_tasks[index].isCompleted;
-      _tasks[index] = _tasks[index].copyWith(isCompleted: updatedStatus);
-      notifyListeners();
+    if (index == -1) return;
 
-      // Persist to local storage immediately
-      if (_currentUserId != null) {
-        await LocalStorageService.saveTasks(_tasks, _currentUserId!);
-      }
+    final updatedStatus = !_tasks[index].isCompleted;
 
-      if (_firebaseService.isInitialized) {
-        await _firebaseService.toggleTaskCompletion(id, updatedStatus);
-      }
+    // 1. Optimistic local update
+    _tasks[index] = _tasks[index].copyWith(isCompleted: updatedStatus);
+    notifyListeners();
 
-      // If marked completed, cancel the upcoming reminder; if uncompleted, re-schedule it
+    // 2. Persist to local storage
+    _saveToLocalStorage();
+
+    // 3. Fire-and-forget to Firestore
+    if (_firebaseService.isInitialized) {
+      _firebaseService.toggleTaskCompletion(id, updatedStatus).catchError((e) {
+        debugPrint('⚠️ Firestore toggleCompletion error: $e');
+      });
+    }
+
+    // 4. Manage notifications
+    try {
       if (updatedStatus) {
         NotificationService().cancelScheduledReminder(id);
       } else {
-        NotificationService().scheduleTaskReminder(_tasks[index]);
+        _scheduleNotificationSafe(_tasks[index]);
       }
-    }
+    } catch (_) {}
   }
 
+  /// Delete a task with optimistic local removal.
   Future<void> deleteTask(String id) async {
-    // Cancel scheduled reminder for this task
-    NotificationService().cancelScheduledReminder(id);
+    // 1. Cancel notification
+    try {
+      NotificationService().cancelScheduledReminder(id);
+    } catch (_) {}
 
+    // 2. Optimistic local delete
     _tasks.removeWhere((t) => t.id == id);
     notifyListeners();
 
-    // Persist to local storage immediately
-    if (_currentUserId != null) {
-      await LocalStorageService.saveTasks(_tasks, _currentUserId!);
-    }
+    // 3. Persist to local storage
+    _saveToLocalStorage();
 
+    // 4. Fire-and-forget to Firestore
     if (_firebaseService.isInitialized) {
-      await _firebaseService.deleteTask(id);
+      _firebaseService.deleteTask(id).catchError((e) {
+        debugPrint('⚠️ Firestore deleteTask error: $e');
+      });
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+
+  /// Schedule a notification without crashing if the service isn't ready.
+  void _scheduleNotificationSafe(TaskModel task) {
+    try {
+      if (NotificationService().isInitialized) {
+        NotificationService().scheduleTaskReminder(task);
+      }
+    } catch (e) {
+      debugPrint('⚠️ Notification scheduling error: $e');
     }
   }
 

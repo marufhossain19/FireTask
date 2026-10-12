@@ -26,7 +26,7 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> {
   bool _isHovered = false;
 
-  Widget _buildPriorityBadge() {
+  Widget _buildPriorityBadge(bool isDark) {
     Color bg;
     Color text;
     Color dot;
@@ -34,26 +34,31 @@ class _TaskCardState extends State<TaskCard> {
 
     switch (widget.task.priority) {
       case TaskPriority.high:
-        bg = AppColors.highPriorityBg;
-        text = AppColors.highPriorityText;
+        bg = isDark
+            ? AppColors.highPriority.withValues(alpha: 0.18)
+            : AppColors.highPriorityBg;
+        text = isDark ? const Color(0xFFF87171) : AppColors.highPriorityText;
         dot = AppColors.highPriority;
         label = 'High';
         break;
       case TaskPriority.medium:
-        bg = AppColors.mediumPriorityBg;
-        text = AppColors.mediumPriorityText;
+        bg = isDark
+            ? AppColors.mediumPriority.withValues(alpha: 0.18)
+            : AppColors.mediumPriorityBg;
+        text = isDark ? const Color(0xFFFBBF24) : AppColors.mediumPriorityText;
         dot = AppColors.mediumPriority;
         label = 'Medium';
         break;
       case TaskPriority.low:
-        bg = AppColors.lowPriorityBg;
-        text = AppColors.lowPriorityText;
+        bg = isDark
+            ? AppColors.lowPriority.withValues(alpha: 0.18)
+            : AppColors.lowPriorityBg;
+        text = isDark ? const Color(0xFF34D399) : AppColors.lowPriorityText;
         dot = AppColors.lowPriority;
         label = 'Low';
         break;
     }
 
-    // Softer, muted priority styling when task is completed (as in Figma)
     if (widget.task.isCompleted) {
       bg = bg.withValues(alpha: 0.5);
       text = text.withValues(alpha: 0.6);
@@ -91,17 +96,19 @@ class _TaskCardState extends State<TaskCard> {
     );
   }
 
-  Widget _buildDoneBadge() {
+  Widget _buildDoneBadge(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFDCFCE7),
+        color: isDark
+            ? const Color(0xFF064E3B).withValues(alpha: 0.45)
+            : const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Text(
+      child: Text(
         'Done',
         style: TextStyle(
-          color: Color(0xFF16A34A),
+          color: isDark ? const Color(0xFF34D399) : const Color(0xFF16A34A),
           fontSize: 11,
           fontWeight: FontWeight.w700,
         ),
@@ -109,34 +116,43 @@ class _TaskCardState extends State<TaskCard> {
     );
   }
 
-  Widget _buildCategoryBadge(String category, bool isCompleted) {
+  Widget _buildCategoryBadge(String category, bool isCompleted, bool isDark) {
     Color bg;
     Color text;
     Color border;
 
     switch (category.toLowerCase().trim()) {
       case 'personal':
-        // Cyan
-        bg = AppColors.categoryPersonalBg;
-        text = AppColors.categoryPersonalText;
-        border = AppColors.categoryPersonalBorder;
+        bg = isDark
+            ? const Color(0xFF0284C7).withValues(alpha: 0.18)
+            : AppColors.categoryPersonalBg;
+        text = isDark ? const Color(0xFF38BDF8) : AppColors.categoryPersonalText;
+        border = isDark
+            ? const Color(0xFF0284C7).withValues(alpha: 0.35)
+            : AppColors.categoryPersonalBorder;
         break;
       case 'educational':
-        // Lavender
-        bg = AppColors.categoryEducationalBg;
-        text = AppColors.categoryEducationalText;
-        border = AppColors.categoryEducationalBorder;
+        bg = isDark
+            ? const Color(0xFF7E22CE).withValues(alpha: 0.18)
+            : AppColors.categoryEducationalBg;
+        text = isDark ? const Color(0xFFC084FC) : AppColors.categoryEducationalText;
+        border = isDark
+            ? const Color(0xFF7E22CE).withValues(alpha: 0.35)
+            : AppColors.categoryEducationalBorder;
         break;
       case 'work':
-        // Mint
-        bg = AppColors.categoryWorkBg;
-        text = AppColors.categoryWorkText;
-        border = AppColors.categoryWorkBorder;
+        bg = isDark
+            ? const Color(0xFF059669).withValues(alpha: 0.18)
+            : AppColors.categoryWorkBg;
+        text = isDark ? const Color(0xFF34D399) : AppColors.categoryWorkText;
+        border = isDark
+            ? const Color(0xFF059669).withValues(alpha: 0.35)
+            : AppColors.categoryWorkBorder;
         break;
       default:
-        bg = const Color(0xFFF3F4F6);
-        text = const Color(0xFF4B5563);
-        border = const Color(0xFFE5E7EB);
+        bg = isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6);
+        text = isDark ? AppColors.darkTextSecondary : const Color(0xFF4B5563);
+        border = isDark ? AppColors.darkBorder : const Color(0xFFE5E7EB);
     }
 
     if (isCompleted) {
@@ -167,10 +183,25 @@ class _TaskCardState extends State<TaskCard> {
   @override
   Widget build(BuildContext context) {
     final isCompleted = widget.task.isCompleted;
+    final isDark = AppColors.isDark(context);
     final dateFormat = DateFormat('MMM d');
     final timeFormat = DateFormat('h:mm a');
     final formattedDate = 'Due ${dateFormat.format(widget.task.dueDate)}';
     final formattedTime = timeFormat.format(widget.task.dueDate);
+
+    // Card background for Deep Black OLED
+    final cardBg = isDark
+        ? (isCompleted ? const Color(0xFF08090D) : AppColors.darkSurface)
+        : (isCompleted ? const Color(0xFFF9FAFB) : Colors.white);
+
+    // Card border
+    final cardBorder = widget.isHighlighted
+        ? (isDark ? Colors.white : Colors.black)
+        : (isDark
+            ? AppColors.darkBorder
+            : (isCompleted
+                ? const Color(0xFFE5E7EB).withValues(alpha: 0.7)
+                : AppColors.border));
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -179,26 +210,23 @@ class _TaskCardState extends State<TaskCard> {
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          // Distinct background color for completed tasks matching Figma
-          color: isCompleted ? const Color(0xFFF9FAFB) : Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: widget.isHighlighted
-                ? Colors.black
-                : (isCompleted
-                    ? const Color(0xFFE5E7EB).withValues(alpha: 0.7)
-                    : AppColors.border),
-            width: widget.isHighlighted ? 2.5 : 1.2,
+            color: cardBorder,
+            width: widget.isHighlighted ? 2.2 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
               color: widget.isHighlighted
-                  ? Colors.black.withValues(alpha: 0.12)
+                  ? (isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.12))
                   : (_isHovered
-                      ? Colors.black.withValues(alpha: 0.05)
+                      ? Colors.black.withValues(alpha: isDark ? 0.3 : 0.05)
                       : (isCompleted
                           ? Colors.transparent
-                          : Colors.black.withValues(alpha: 0.02))),
+                          : Colors.black.withValues(alpha: isDark ? 0.2 : 0.02))),
               blurRadius: widget.isHighlighted ? 12 : (_isHovered ? 8 : 4),
               offset: const Offset(0, 2),
             ),
@@ -225,11 +253,13 @@ class _TaskCardState extends State<TaskCard> {
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isCompleted ? const Color(0xFF4B5563) : Colors.white,
+                          color: isCompleted
+                              ? (isDark ? AppColors.darkPrimary : const Color(0xFF4B5563))
+                              : (isDark ? AppColors.darkSurfaceElevated : Colors.white),
                           border: Border.all(
                             color: isCompleted
-                                ? const Color(0xFF4B5563)
-                                : const Color(0xFFD1D5DB),
+                                ? (isDark ? AppColors.darkPrimary : const Color(0xFF4B5563))
+                                : (isDark ? const Color(0xFF374151) : const Color(0xFFD1D5DB)),
                             width: 1.8,
                           ),
                         ),
@@ -252,13 +282,13 @@ class _TaskCardState extends State<TaskCard> {
                         // Header: Priority Badge + Done Badge + Action Icons
                         Row(
                           children: [
-                            _buildPriorityBadge(),
+                            _buildPriorityBadge(isDark),
                             if (isCompleted) ...[
                               const SizedBox(width: 6),
-                              _buildDoneBadge(),
+                              _buildDoneBadge(isDark),
                             ],
                             const Spacer(),
-                            // Action Icons with faded color when completed
+                            // Action Icons
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -271,8 +301,8 @@ class _TaskCardState extends State<TaskCard> {
                                       Icons.edit_outlined,
                                       size: 16,
                                       color: isCompleted
-                                          ? const Color(0xFFCBD5E1)
-                                          : const Color(0xFF9CA3AF),
+                                          ? (isDark ? const Color(0xFF4B5563) : const Color(0xFFCBD5E1))
+                                          : (isDark ? AppColors.darkTextMuted : const Color(0xFF9CA3AF)),
                                     ),
                                   ),
                                 ),
@@ -286,8 +316,8 @@ class _TaskCardState extends State<TaskCard> {
                                       Icons.delete_outline_rounded,
                                       size: 16,
                                       color: isCompleted
-                                          ? const Color(0xFFCBD5E1)
-                                          : const Color(0xFF9CA3AF),
+                                          ? (isDark ? const Color(0xFF4B5563) : const Color(0xFFCBD5E1))
+                                          : (isDark ? AppColors.darkTextMuted : const Color(0xFF9CA3AF)),
                                     ),
                                   ),
                                 ),
@@ -297,19 +327,19 @@ class _TaskCardState extends State<TaskCard> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Title: Faded strikethrough when completed
+                        // Title
                         Text(
                           widget.task.title,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: isCompleted
-                                ? const Color(0xFF9CA3AF)
-                                : AppColors.textPrimary,
+                                ? (isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF))
+                                : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                             decoration: isCompleted
                                 ? TextDecoration.lineThrough
                                 : TextDecoration.none,
-                            decorationColor: const Color(0xFF9CA3AF),
+                            decorationColor: isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),
                           ),
                         ),
                         if (widget.task.description.isNotEmpty) ...[
@@ -321,8 +351,10 @@ class _TaskCardState extends State<TaskCard> {
                             style: TextStyle(
                               fontSize: 13,
                               color: isCompleted
-                                  ? const Color(0xFF9CA3AF).withValues(alpha: 0.8)
-                                  : AppColors.textSecondary,
+                                  ? (isDark
+                                      ? const Color(0xFF6B7280).withValues(alpha: 0.8)
+                                      : const Color(0xFF9CA3AF).withValues(alpha: 0.8))
+                                  : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                               height: 1.3,
                             ),
                           ),
@@ -343,8 +375,8 @@ class _TaskCardState extends State<TaskCard> {
                                       : Icons.calendar_today_outlined,
                                   size: 13,
                                   color: isCompleted
-                                      ? const Color(0xFF9CA3AF)
-                                      : AppColors.textMuted,
+                                      ? (isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF))
+                                      : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -352,8 +384,8 @@ class _TaskCardState extends State<TaskCard> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isCompleted
-                                        ? const Color(0xFF9CA3AF)
-                                        : AppColors.textMuted,
+                                        ? (isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF))
+                                        : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -368,8 +400,8 @@ class _TaskCardState extends State<TaskCard> {
                                   Icons.access_time_rounded,
                                   size: 13,
                                   color: isCompleted
-                                      ? const Color(0xFF9CA3AF)
-                                      : AppColors.textMuted,
+                                      ? (isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF))
+                                      : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -377,20 +409,20 @@ class _TaskCardState extends State<TaskCard> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isCompleted
-                                        ? const Color(0xFF9CA3AF)
-                                        : AppColors.textMuted,
+                                        ? (isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF))
+                                        : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
 
-                            // Category badge
-                            if (widget.task.category.isNotEmpty)
-                              _buildCategoryBadge(
-                                widget.task.category,
-                                isCompleted,
-                              ),
+                            // Category Badge
+                            _buildCategoryBadge(
+                              widget.task.courseBucket,
+                              isCompleted,
+                              isDark,
+                            ),
                           ],
                         ),
                       ],

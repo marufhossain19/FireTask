@@ -122,10 +122,12 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
         20,
@@ -146,7 +148,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
+                    color: isDark ? const Color(0xFF2E3240) : const Color(0xFFE5E7EB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -159,17 +161,17 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
+                      color: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFEEF2FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.rate_review_rounded,
-                      color: AppColors.primary,
+                      color: isDark ? const Color(0xFFA5B4FC) : AppColors.primary,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -178,15 +180,15 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: AppColors.textPrimaryOf(context),
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           'Send suggestions or thoughts to developer',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textMuted,
+                            color: AppColors.textMutedOf(context),
                           ),
                         ),
                       ],
@@ -196,14 +198,14 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3F4F6),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close_rounded,
                         size: 18,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textSecondaryOf(context),
                       ),
                     ),
                   ),

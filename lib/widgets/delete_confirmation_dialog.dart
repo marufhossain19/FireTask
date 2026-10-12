@@ -29,11 +29,12 @@ class DeleteConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
     final formattedDate = 'Due ${dateFormat.format(task.dueDate)}';
+    final isDark = AppColors.isDark(context);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
       child: Column(
@@ -45,7 +46,7 @@ class DeleteConfirmationDialog extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E7EB),
+                color: isDark ? const Color(0xFF2E3240) : const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -56,36 +57,36 @@ class DeleteConfirmationDialog extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEE2E2),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.delete_outline_rounded,
-              color: Color(0xFFDC2626),
+              color: Color(0xFFEF4444),
               size: 26,
             ),
           ),
           const SizedBox(height: 16),
 
           // Title
-          const Text(
+          Text(
             'Delete Task?',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: AppColors.textPrimaryOf(context),
             ),
           ),
           const SizedBox(height: 8),
 
           // Subtitle
-          const Text(
+          Text(
             'Are you sure you want to remove this task?\nThis action cannot be undone.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.textMuted,
+              color: AppColors.textMutedOf(context),
               height: 1.4,
             ),
           ),
@@ -96,9 +97,12 @@ class DeleteConfirmationDialog extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
+              color: isDark ? AppColors.darkSurfaceElevated : const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border, width: 1.2),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+                width: 1.2,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,11 +111,11 @@ class DeleteConfirmationDialog extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      task.category.isNotEmpty ? task.category : 'General',
-                      style: const TextStyle(
+                      task.courseBucket.isNotEmpty ? task.courseBucket : 'General',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: isDark ? const Color(0xFFA5B4FC) : AppColors.primary,
                       ),
                     ),
                     Row(
@@ -130,7 +134,7 @@ class DeleteConfirmationDialog extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFDC2626),
+                            color: Color(0xFFEF4444),
                           ),
                         ),
                       ],
@@ -140,26 +144,26 @@ class DeleteConfirmationDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   task.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: AppColors.textPrimaryOf(context),
                   ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_outlined,
                       size: 12,
-                      color: AppColors.textMuted,
+                      color: AppColors.textMutedOf(context),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       formattedDate,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMuted,
+                        color: AppColors.textMutedOf(context),
                       ),
                     ),
                   ],
@@ -207,12 +211,12 @@ class DeleteConfirmationDialog extends StatelessWidget {
           // Cancel Button
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: AppColors.textSecondaryOf(context),
               ),
             ),
           ),

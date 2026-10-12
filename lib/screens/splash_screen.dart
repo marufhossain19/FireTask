@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../services/firebase_service.dart';
+
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -23,8 +23,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Attempt Firebase and Notification initialization
-    await FirebaseService().initialize();
+    // Firebase is already initialized in main.dart before runApp().
+    // Initialize notifications here (requires widget binding to be ready).
     await NotificationService().initialize();
 
     // Extended delay (3.2s) so the Lottie tick animation can play through completely
@@ -48,8 +48,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundOf(context),
       body: SafeArea(
         child: Column(
           children: [
@@ -69,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: AppColors.textPrimaryOf(context),
                   ),
             ),
             const SizedBox(height: 8),
@@ -80,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 'Smart & seamless task management',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textMuted,
+                      color: AppColors.textMutedOf(context),
                       height: 1.4,
                     ),
               ),
@@ -90,19 +92,21 @@ class _SplashScreenState extends State<SplashScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isDark ? AppColors.darkPrimary : AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16, width: 10),
                 Text(
                   'Initializing app...',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textMuted,
+                        color: AppColors.textMutedOf(context),
                         fontSize: 12,
                       ),
                 ),

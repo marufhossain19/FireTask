@@ -60,22 +60,23 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
       'icon': Icons.access_time_rounded,
     },
     {
+      'label': 'Due Soon',
+      'subtitle': 'Earliest deadline',
+      'value': TaskSortOption.dueDate,
+      'icon': Icons.event_rounded,
+    },
+    {
       'label': 'Priority',
       'subtitle': 'High to Low',
       'value': TaskSortOption.priority,
-      'icon': Icons.bolt_rounded,
-    },
-    {
-      'label': 'Due Date',
-      'subtitle': 'Earliest first',
-      'value': TaskSortOption.dueDate,
-      'icon': Icons.calendar_today_rounded,
+      'icon': Icons.flag_rounded,
     },
   ];
 
   Widget _buildCategoryTile(
     Map<String, dynamic> item,
     int count,
+    bool isDark,
   ) {
     final isSelected = _tempCategory == item['value'];
 
@@ -83,24 +84,28 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
       child: GestureDetector(
         onTap: () {
           setState(() {
-            // Tap selected to toggle back to all, or select this category
             _tempCategory = isSelected ? null : item['value'];
           });
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.darkButton : Colors.white,
+            color: isSelected
+                ? (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+                : (isDark ? AppColors.darkSurfaceElevated : Colors.white),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isSelected ? AppColors.darkButton : AppColors.border,
+              color: isSelected
+                  ? (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+                  : (isDark ? AppColors.darkBorder : AppColors.border),
               width: isSelected ? 1.6 : 1.2,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -113,36 +118,52 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
               Icon(
                 item['icon'] as IconData,
                 size: 20,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
               ),
               const SizedBox(height: 6),
-              Text(
-                item['label'] as String,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                ),
+                child: Text(
+                  item['label'] as String,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(height: 4),
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.white.withValues(alpha: 0.25)
-                      : const Color(0xFFF3F4F6),
+                      : (isDark ? const Color(0xFF222634) : const Color(0xFFF3F4F6)),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  '$count',
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
                   style: TextStyle(
+                    fontFamily: 'Inter',
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                   ),
+                  child: Text('$count'),
                 ),
               ),
             ],
@@ -152,8 +173,9 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
     );
   }
 
-  Widget _buildSortTile(Map<String, dynamic> item) {
+  Widget _buildSortTile(Map<String, dynamic> item, bool isDark) {
     final isSelected = _tempSort == item['value'];
+    final activeColor = isDark ? AppColors.darkPrimary : AppColors.primary;
 
     return Expanded(
       child: GestureDetector(
@@ -163,15 +185,16 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
           });
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.08)
-                : Colors.white,
+                ? activeColor.withValues(alpha: isDark ? 0.2 : 0.08)
+                : (isDark ? AppColors.darkSurfaceElevated : Colors.white),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.border,
+              color: isSelected ? activeColor : (isDark ? AppColors.darkBorder : AppColors.border),
               width: isSelected ? 1.6 : 1.2,
             ),
           ),
@@ -180,28 +203,42 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
               Icon(
                 item['icon'] as IconData,
                 size: 20,
-                color: isSelected ? AppColors.primary : AppColors.textMuted,
+                color: isSelected
+                    ? activeColor
+                    : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
               ),
               const SizedBox(height: 6),
-              Text(
-                item['label'] as String,
-                textAlign: TextAlign.center,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                  color: isSelected
+                      ? activeColor
+                      : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                ),
+                child: Text(
+                  item['label'] as String,
+                  textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                item['subtitle'] as String,
-                textAlign: TextAlign.center,
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 10,
                   color: isSelected
-                      ? AppColors.primary.withValues(alpha: 0.8)
-                      : AppColors.textMuted,
+                      ? activeColor.withValues(alpha: 0.85)
+                      : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
                   fontWeight: FontWeight.w500,
+                ),
+                child: Text(
+                  item['subtitle'] as String,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -211,7 +248,12 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
     );
   }
 
-  Widget _buildPriorityTile(TaskPriority? priority, String label, Color color) {
+  Widget _buildPriorityTile(
+    TaskPriority? priority,
+    String label,
+    Color color,
+    bool isDark,
+  ) {
     final isSelected = _tempPriority == priority;
 
     return Expanded(
@@ -222,13 +264,16 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
           });
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.12) : Colors.white,
+            color: isSelected
+                ? color.withValues(alpha: isDark ? 0.22 : 0.12)
+                : (isDark ? AppColors.darkSurfaceElevated : Colors.white),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? color : AppColors.border,
+              color: isSelected ? color : (isDark ? AppColors.darkBorder : AppColors.border),
               width: isSelected ? 1.6 : 1.2,
             ),
           ),
@@ -236,9 +281,11 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (priority != null) ...[
-                Container(
-                  width: 6,
-                  height: 6,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  width: isSelected ? 7 : 6,
+                  height: isSelected ? 7 : 6,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
@@ -247,15 +294,22 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                 const SizedBox(width: 4),
               ],
               Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
                   style: TextStyle(
+                    fontFamily: 'Inter',
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected ? color : AppColors.textSecondary,
+                    color: isSelected
+                        ? (isDark ? (priority == null ? AppColors.darkPrimary : color) : color)
+                        : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+                  ),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -269,15 +323,16 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TaskProvider>(context);
+    final isDark = AppColors.isDark(context);
 
     final hasActiveFilters = _tempCategory != null ||
         _tempPriority != null ||
         _tempSort != TaskSortOption.newest;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
       child: SafeArea(
@@ -292,7 +347,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
+                  color: isDark ? const Color(0xFF2E3240) : const Color(0xFFE5E7EB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -305,17 +360,17 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
+                    color: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFEEF2FF),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.tune_rounded,
-                    color: AppColors.primary,
+                    color: isDark ? const Color(0xFFA5B4FC) : AppColors.primary,
                     size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -324,15 +379,15 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: AppColors.textPrimaryOf(context),
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         'Customize your task view',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textMuted,
+                          color: AppColors.textMutedOf(context),
                         ),
                       ),
                     ],
@@ -365,7 +420,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
             ),
             const SizedBox(height: 22),
 
-            // 1. Category Section: Header with "All" toggle + 3 categories in 1 row
+            // 1. Category Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -374,7 +429,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         letterSpacing: 0.8,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textMuted,
+                        color: AppColors.textMutedOf(context),
                       ),
                 ),
                 GestureDetector(
@@ -387,7 +442,9 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                     duration: const Duration(milliseconds: 160),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _tempCategory == null ? AppColors.darkButton : const Color(0xFFF3F4F6),
+                      color: _tempCategory == null
+                          ? (isDark ? AppColors.darkPrimary : AppColors.darkButton)
+                          : (isDark ? AppColors.darkSurfaceElevated : const Color(0xFFF3F4F6)),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -395,7 +452,9 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _tempCategory == null ? Colors.white : AppColors.textSecondary,
+                        color: _tempCategory == null
+                            ? Colors.white
+                            : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                       ),
                     ),
                   ),
@@ -403,35 +462,34 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            // Exactly 3 in 1 row!
             Row(
               children: [
-                _buildCategoryTile(_categories[0], provider.countForCategory('Personal')),
+                _buildCategoryTile(_categories[0], provider.countForCategory('Personal'), isDark),
                 const SizedBox(width: 8),
-                _buildCategoryTile(_categories[1], provider.countForCategory('Educational')),
+                _buildCategoryTile(_categories[1], provider.countForCategory('Educational'), isDark),
                 const SizedBox(width: 8),
-                _buildCategoryTile(_categories[2], provider.countForCategory('Work')),
+                _buildCategoryTile(_categories[2], provider.countForCategory('Work'), isDark),
               ],
             ),
             const SizedBox(height: 22),
 
-            // 2. Sort By Section (3 in 1 row)
+            // 2. Sort By Section
             Text(
               'SORT BY',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     letterSpacing: 0.8,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textMuted,
+                    color: AppColors.textMutedOf(context),
                   ),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                _buildSortTile(_sortOptions[0]),
+                _buildSortTile(_sortOptions[0], isDark),
                 const SizedBox(width: 8),
-                _buildSortTile(_sortOptions[1]),
+                _buildSortTile(_sortOptions[1], isDark),
                 const SizedBox(width: 8),
-                _buildSortTile(_sortOptions[2]),
+                _buildSortTile(_sortOptions[2], isDark),
               ],
             ),
             const SizedBox(height: 22),
@@ -442,19 +500,19 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     letterSpacing: 0.8,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textMuted,
+                    color: AppColors.textMutedOf(context),
                   ),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                _buildPriorityTile(null, 'All', AppColors.primary),
+                _buildPriorityTile(null, 'All', isDark ? AppColors.darkPrimary : AppColors.primary, isDark),
                 const SizedBox(width: 6),
-                _buildPriorityTile(TaskPriority.high, 'High', AppColors.highPriority),
+                _buildPriorityTile(TaskPriority.high, 'High', AppColors.highPriority, isDark),
                 const SizedBox(width: 6),
-                _buildPriorityTile(TaskPriority.medium, 'Medium', AppColors.mediumPriority),
+                _buildPriorityTile(TaskPriority.medium, 'Medium', AppColors.mediumPriority, isDark),
                 const SizedBox(width: 6),
-                _buildPriorityTile(TaskPriority.low, 'Low', AppColors.lowPriority),
+                _buildPriorityTile(TaskPriority.low, 'Low', AppColors.lowPriority, isDark),
               ],
             ),
             const SizedBox(height: 28),
@@ -464,7 +522,7 @@ class _FilterSortBottomSheetState extends State<FilterSortBottomSheet> {
               height: 52,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.darkButton,
+                  backgroundColor: isDark ? AppColors.darkPrimary : AppColors.darkButton,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),

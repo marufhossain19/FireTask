@@ -98,11 +98,12 @@ class _SetPasswordBottomSheetState extends State<SetPasswordBottomSheet> {
     final authProvider = Provider.of<AuthProvider>(context);
     final email = authProvider.userEmail;
     final hasPassword = authProvider.hasPasswordProvider;
+    final isDark = AppColors.isDark(context);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
         20,
@@ -123,7 +124,7 @@ class _SetPasswordBottomSheetState extends State<SetPasswordBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
+                    color: isDark ? const Color(0xFF2E3240) : const Color(0xFFE5E7EB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -136,12 +137,12 @@ class _SetPasswordBottomSheetState extends State<SetPasswordBottomSheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
+                      color: isDark ? const Color(0xFF1E1B4B) : const Color(0xFFEEF2FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.lock_rounded,
-                      color: AppColors.primary,
+                      color: isDark ? const Color(0xFFA5B4FC) : AppColors.primary,
                       size: 20,
                     ),
                   ),
@@ -154,18 +155,18 @@ class _SetPasswordBottomSheetState extends State<SetPasswordBottomSheet> {
                           hasPassword
                               ? 'Change Account Password'
                               : 'Set Account Password',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: AppColors.textPrimaryOf(context),
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'Create or change password for email login',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textMuted,
+                            color: AppColors.textMutedOf(context),
                           ),
                         ),
                       ],
@@ -175,14 +176,14 @@ class _SetPasswordBottomSheetState extends State<SetPasswordBottomSheet> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3F4F6),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close_rounded,
                         size: 18,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textSecondaryOf(context),
                       ),
                     ),
                   ),
