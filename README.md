@@ -51,19 +51,14 @@
 | <img src="lib/Output%20Screens/mark%20as%20complete%20using%20swipe%20right%20gesture.jpg" width="310" /> | <img src="lib/Output%20Screens/delete%20task%20using%20swipe%20left%20screen.jpg" width="310" /> |
 
 ### 4. Push & Local Notification System
-| Foreground Alert Banner | FCM Test Trigger & Token Sheet |
-| :---: | :---: |
-| <img src="lib/Output%20Screens/notification.jpg" width="310" /> | <img src="lib/Output%20Screens/FCM%20test%20notification.jpg" width="310" /> |
+<p align="center">
+  <img src="lib/Output%20Screens/notification.jpg" width="340" alt="Foreground Alert Banner" />
+</p>
 
 ### 5. Profile, Account & Settings
 | Profile Screen | Account & Settings Card | Change Password | Share Feedback |
 | :---: | :---: | :---: | :---: |
 | <img src="lib/Output%20Screens/profile%20screen.jpg" width="200" /> | <img src="lib/Output%20Screens/account%20and%20settings%20card.jpg" width="200" /> | <img src="lib/Output%20Screens/change%20password.jpg" width="200" /> | <img src="lib/Output%20Screens/share%20feedback'.jpg" width="200" /> |
-
-### 6. Cloud Firestore Real-Time Database
-<p align="center">
-  <img src="lib/Output%20Screens/Database%20output.png" width="850" alt="Cloud Firestore Database Output" />
-</p>
 
 ---
 
